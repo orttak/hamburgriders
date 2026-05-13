@@ -1,0 +1,45 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download GTFS feed
+        run: |
+          mkdir -p build/gtfs-nl
+          GTFS_URL="${{ secrets.GTFS_URL }}"
+          if [ -z "$GTFS_URL" ]; then
+            GTFS_URL=$(node -e "const c=require('./config.json'); console.log(c.gtfsUrl);")
+          fi
+          echo "Downloading GTFS feed from $GTFS_URL ..."
+          curl -L "$GTFS_URL" -o build/gtfs.zip
+          unzip -o build/gtfs.zip -d build/gtfs-nl
+          ls -lh build/gtfs-nl/
+
+      - name: Build data files
+        run: node scripts/build-data.js
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true

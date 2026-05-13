@@ -1,0 +1,19 @@
+{
+  "gtfsPath": "build/gtfs-nl",
+  "bbox": {
+    "minLon": 4.995003,
+    "minLat": 52.049134,
+    "maxLon": 5.231209,
+    "maxLat": 52.150129
+  },
+  "title": "utrechtriders",
+  "mapStyle": "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+  "mapCenter": [5.121, 52.090],
+  "mapZoom": 11,
+  "feedInfo": {
+    "publisher": "OVapi",
+    "url": "http://www.ovapi.nl",
+    "description": "Netherlands public transport GTFS feed"
+  },
+  "gtfsUrl": "https://gtfs.ovapi.nl/nl/gtfs-nl.zip"
+}

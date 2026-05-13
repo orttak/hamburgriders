@@ -1,0 +1,11 @@
+{
+  "name": "utrechtriders",
+  "version": "1.0.0",
+  "description": "Utrecht public transit animation map",
+  "scripts": {
+    "build": "node scripts/build-data.js",
+    "start": "npx serve docs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

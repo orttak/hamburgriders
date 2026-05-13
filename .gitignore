@@ -1,0 +1,7 @@
+node_modules/
+
+# GTFS source data (large, not committed)
+build/
+
+# Generated map data (built by scripts/build-data.js)
+docs/data/

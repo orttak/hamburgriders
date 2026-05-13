@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utrechtriders</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header id="header">
+    <div id="title">utrechtriders <span id="date-label"></span></div>
+    <div id="header-right">
+      <button class="icon-btn" id="legend-btn" title="Toggle legend">≡</button>
+      <button class="icon-btn" id="about-btn" title="About">ⓘ</button>
+    </div>
+  </header>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Statistics panel -->
+  <div id="stats">
+    <h3>Statistics</h3>
+    <div class="stat-row">
+      <span class="stat-label">Active trips</span>
+      <span class="stat-value" id="stat-active">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Cumulative today</span>
+      <span class="stat-value" id="stat-cumulative">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total trips</span>
+      <span class="stat-value" id="stat-total">–</span>
+    </div>
+  </div>
+
+  <!-- Legend panel -->
+  <div id="legend">
+    <h3>Routes</h3>
+    <div id="legend-items"></div>
+  </div>
+
+  <!-- Timeline bar -->
+  <div id="timeline">
+    <button id="play-pause">⏸ Pause</button>
+    <span id="time-display">07:00</span>
+    <input type="range" id="timeline-slider" min="18000" max="104400" value="25200" step="30" />
+    <span id="speed-label">Speed:</span>
+    <select id="speed-select">
+      <option value="10">10×</option>
+      <option value="30">30×</option>
+      <option value="60" selected>60×</option>
+      <option value="120">120×</option>
+      <option value="300">300×</option>
+      <option value="600">600×</option>
+      <option value="1200">1200×</option>
+      <option value="3600">3600×</option>
+    </select>
+  </div>
+
+  <!-- About modal -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <button id="modal-close">×</button>
+      <h2>About utrechtriders</h2>
+      <p id="about-description">
+        This map shows all public transit (OV) movements in the municipality of Utrecht for today,
+        based on a GTFS schedule feed.
+      </p>
+      <hr />
+      <p><strong>Data source</strong></p>
+      <p id="about-feed">Loading feed info…</p>
+      <hr />
+      <p>
+        Inspired by
+        <a href="https://anita.garden/londonriders/" target="_blank" rel="noopener">londonriders</a>
+        by <a href="https://anita.garden/" target="_blank" rel="noopener">anita</a>.
+        Map built with <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre GL</a>
+        and <a href="https://carto.com/basemaps" target="_blank" rel="noopener">CARTO</a> basemap tiles.
+      </p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
