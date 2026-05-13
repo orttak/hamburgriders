@@ -24,7 +24,7 @@ let trips      = [];
 let animTime  = DEFAULT_START;
 let playing   = true;
 let lastTs    = null;    // previous RAF timestamp (ms)
-let speed     = 60;      // animation speed multiplier (real seconds per wall second)
+let speed     = 300;      // animation speed multiplier (real seconds per wall second)
 let lastDrawnTime = -1;  // suppress redraw when unchanged
 
 // Trip state tracking — reset on backward scrub
