@@ -21,7 +21,10 @@ export class MapManager {
       container: 'map',
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       center: [10.0, 53.55],
-      zoom: 9
+      zoom: 9,
+      attributionControl: {
+        compact: true
+      }
     });
 
     this.deckOverlay = new MapboxOverlay({
@@ -32,17 +35,35 @@ export class MapManager {
     this.map.addControl(new maplibregl.NavigationControl({
       showCompass: true,
       showZoom: true
-    }), 'top-left');
+    }), 'bottom-left');
     this.map.addControl(this.deckOverlay);
+    this.closeMobileAttribution();
 
     this.tripPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10 });
     this.stopPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 6 });
 
     return new Promise<void>((resolve) => {
       this.map!.on('load', () => {
+        this.closeMobileAttribution();
         this.addMapLibreStopsLayers();
         resolve();
       });
+    });
+  }
+
+  private closeMobileAttribution() {
+    if (!window.matchMedia('(max-width: 700px)').matches) return;
+
+    window.requestAnimationFrame(() => {
+      const attribution = document.querySelector('.maplibregl-ctrl-attrib');
+      if (!attribution) return;
+
+      attribution.classList.add('maplibregl-compact');
+      attribution.classList.remove('maplibregl-compact-show');
+      attribution.removeAttribute('open');
+      attribution
+        .querySelector('.maplibregl-ctrl-attrib-button')
+        ?.setAttribute('aria-expanded', 'false');
     });
   }
 
