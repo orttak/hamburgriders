@@ -1,0 +1,62 @@
+name: Daily GTFS Update & Deploy
+
+on:
+  schedule:
+    - cron: "55 2 * * *" # Every day at 02:55 UTC
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare GTFS data
+        run: |
+          CONFIG_URL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('config.json')).gtfsUrl)")
+          if [ -z "$CONFIG_URL" ]; then
+            echo "Error: No GTFS URL found in config.json"
+            exit 1
+          fi
+          echo "Downloading GTFS..."
+          curl -L -o gtfs.zip "$CONFIG_URL"
+          mkdir -p ../hamburg-gtfs-extracted
+          unzip -o gtfs.zip -d ../hamburg-gtfs-extracted
+          rm gtfs.zip
+
+      - name: Build
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
