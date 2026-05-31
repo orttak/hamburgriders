@@ -65,6 +65,9 @@ export class UIController {
     document.getElementById('about-btn')!.addEventListener('click', () => overlay.classList.add('visible'));
     document.getElementById('modal-close')!.addEventListener('click', () => overlay.classList.remove('visible'));
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); });
+
+    this.initMobileLayersPanel();
+    this.initMobileStatsPanel();
   }
 
   updateHUD(time: number, activeCount: number, seenCount: number) {
@@ -133,7 +136,9 @@ export class UIController {
 
     for (const type of TYPE_ORDER) {
       const group = document.createElement('div');
-      group.className = 'layer-type-group';
+      group.className = window.matchMedia('(max-width: 700px)').matches
+        ? 'layer-type-group collapsed'
+        : 'layer-type-group';
 
       const header = document.createElement('div');
       header.className = 'layer-type-header';
@@ -437,5 +442,81 @@ export class UIController {
   private getRouteColor(route: Route) {
     if (route.bus_type) return VEHICLE_TYPE_COLORS[this.getBusType(route)] || route.color || '4a90d9';
     return VEHICLE_TYPE_COLORS[route.transit_type] || route.color || '4a90d9';
+  }
+
+  private initMobileLayersPanel() {
+    const panel = document.getElementById('layers-panel');
+    const header = document.getElementById('layers-header');
+    const toggle = document.getElementById('layers-toggle');
+    if (!panel || !header || !toggle) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 700px)');
+
+    const setCollapsed = (collapsed: boolean) => {
+      if (!collapsed && mobileQuery.matches) this.collapseLayerGroups();
+      panel.classList.toggle('mobile-collapsed', collapsed);
+      toggle.textContent = collapsed ? '⌃' : '⌄';
+      toggle.setAttribute('aria-expanded', (!collapsed).toString());
+    };
+
+    const syncForViewport = () => {
+      if (mobileQuery.matches) {
+        if (!panel.classList.contains('mobile-collapsed')) setCollapsed(true);
+      } else {
+        panel.classList.remove('mobile-collapsed');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    };
+
+    header.addEventListener('click', (e) => {
+      if (!mobileQuery.matches) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('#layer-controls')) return;
+      setCollapsed(!panel.classList.contains('mobile-collapsed'));
+    });
+
+    syncForViewport();
+    mobileQuery.addEventListener('change', syncForViewport);
+  }
+
+  private collapseLayerGroups() {
+    document.querySelectorAll('#layers-body .layer-type-group').forEach(group => {
+      group.classList.add('collapsed');
+    });
+  }
+
+  private initMobileStatsPanel() {
+    const panel = document.getElementById('stats');
+    const heading = panel?.querySelector('h3');
+    const toggle = document.getElementById('stats-toggle');
+    if (!panel || !heading || !toggle) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 700px)');
+
+    const setCollapsed = (collapsed: boolean) => {
+      panel.classList.toggle('mobile-collapsed', collapsed);
+      toggle.textContent = collapsed ? '⌃' : '⌄';
+      toggle.setAttribute('aria-expanded', (!collapsed).toString());
+    };
+
+    const syncForViewport = () => {
+      if (mobileQuery.matches) {
+        if (!panel.classList.contains('mobile-collapsed')) setCollapsed(true);
+      } else {
+        panel.classList.remove('mobile-collapsed');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    };
+
+    const handleToggle = () => {
+      if (!mobileQuery.matches) return;
+      setCollapsed(!panel.classList.contains('mobile-collapsed'));
+    };
+
+    heading.addEventListener('click', handleToggle);
+    toggle.addEventListener('click', handleToggle);
+
+    syncForViewport();
+    mobileQuery.addEventListener('change', syncForViewport);
   }
 }
