@@ -2,11 +2,11 @@
 /**
  * build-data.js
  * Reads the GTFS feed configured in config.json and outputs compact JSON
- * for today's Utrecht public transit trips to docs/data/.
+ * for today's Hamburg public transit trips to docs/data/.
  *
  * Output files:
  *   docs/data/meta.json        — build date, feed info, stats
- *   docs/data/stops.json       — stops within Utrecht bbox (for map display)
+ *   docs/data/stops.json       — stops within Hamburg bbox (for map display)
  *   docs/data/stop_coords.json — coords for ALL stops referenced by today's trips (for interpolation)
  *   docs/data/routes.json      — routes referenced by today's trips
  *   docs/data/trips.json       — trips active today with ordered stop times
@@ -23,7 +23,7 @@ const readline = require('readline');
 // ---------------------------------------------------------------------------
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'config.json'), 'utf8'));
 const GTFS   = path.resolve(path.join(__dirname, '..', config.gtfsPath));
-const OUT    = path.resolve(path.join(__dirname, '..', 'docs', 'data'));
+const OUT    = path.resolve(path.join(__dirname, '..', 'dist', 'data'));
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -131,28 +131,103 @@ async function main() {
   console.log('Step 2: Loading active service IDs for today...');
   const activeServiceIds = new Set();
 
+  // 1) Exception dates: exception_type=1 means service IS active today
   await streamCSV(path.join(GTFS, 'calendar_dates.txt'), (fields, h) => {
     if ((fields[h.date] || '').trim() === TODAY && (fields[h.exception_type] || '').trim() === '1') {
       activeServiceIds.add((fields[h.service_id] || '').trim());
     }
   });
+
+  // 2) Regular calendar: if today matches a valid service, include it
+  //    Day mapping: Mo=1 Tu=2 We=3 Th=4 Fr=5 Sa=6 Su=7
+  const dayOfWeek = now.getDay() || 7; // JS: Sun=0→7, Mon=1, Tue=2, ...
+  const dayKey = String(dayOfWeek);
+  const start = TODAY.slice(4, 6);
+  const end   = TODAY.slice(6, 8);
+
+  await streamCSV(path.join(GTFS, 'calendar.txt'), (fields, h) => {
+    const sid = (fields[h.service_id] || '').trim();
+    if (activeServiceIds.has(sid)) return; // already added via exception
+    try {
+      const startDate = (fields[h.start_date] || '').trim();
+      const endDate   = (fields[h.end_date]   || '').trim();
+      const active    = (fields[h.active]       || '').trim();
+      if (active && active !== '1') return;
+      if (startDate > TODAY || endDate < TODAY) return;
+      const dayField = {'1': h.monday, '2': h.tuesday, '3': h.wednesday,
+                         '4': h.thursday, '5': h.friday, '6': h.saturday, '7': h.sunday}[dayKey];
+      if (dayField && (fields[dayField] || '').trim() === '1') {
+        activeServiceIds.add(sid);
+      }
+    } catch (_) {}
+  });
   console.log(`  Active service IDs: ${activeServiceIds.size}`);
 
   // ---- Step 3: Load all routes ---------------------------------------------
   console.log('Step 3: Loading routes...');
+  // Hamburg official route colors (post-Dec 2023 reform)
+  const HAMBURG_ROUTE_COLORS = {
+    // S-Bahn
+    'S1': '009A44', 'S2': 'C8102E', 'S3': '9B30F5', 'S5': '0085CA', 'S7': 'A7A7A7',
+    // U-Bahn
+    'U1': '0066CC', 'U2': 'E2001A', 'U3': 'F9A602', 'U4': '00A3E0',
+  };
+
+  // Hamburg-specific classification — GTFS route_type values differ from standard
+  function classifyRoute(type, shortName) {
+    const t = parseInt(type, 10);
+    const s = (shortName || '').toUpperCase();
+
+    // S-Bahn: Hamburg uses route_type=109 (non-standard) for S-Bahn
+    if (t === 109) return 'S-Bahn';
+    if (t === 0 && /S[12357]/.test(s)) return 'S-Bahn';  // fallback standard
+
+    // U-Bahn: Hamburg uses route_type=402 (non-standard) for U-Bahn
+    if (t === 402) return 'U-Bahn';
+    if (t === 1 && /U[1234]/.test(s)) return 'U-Bahn';   // fallback standard
+
+    // RegionalBahn: route_type=2 with RE/RB/A prefix
+    if (t === 2 && /^(RE|RB|A)/.test(s)) return 'Regional';
+
+    // HVV bus variants stay under Bus; bus_type carries the subcategory.
+    if (t === 3 || t === 702 || t === 1200 || /^[0-9X]/.test(s)) return 'Bus';
+
+    // Everything else: Bus
+    return 'Bus';
+  }
+
+  function classifyBusType(type, shortName) {
+    const t = parseInt(type, 10);
+    const s = (shortName || '').toUpperCase();
+
+    if (/^6[0-9]{2}$/.test(s)) return 'NightBus';
+    if (t === 702 || /^X[0-9]/.test(s)) return 'ExpressBus';
+    if (/^[0-9]{1,2}$/.test(s)) return 'MetroBus';
+    return 'StandardBus';
+  }
+
   const routesMap = new Map();
 
   await streamCSV(path.join(GTFS, 'routes.txt'), (fields, h) => {
     const id = (fields[h.route_id] || '').trim();
     if (!id) return;
-    routesMap.set(id, {
+    const shortName = (fields[h.route_short_name] || '').trim();
+    const routeType = fields[h.route_type] || '3';
+    const typeLabel = classifyRoute(routeType, shortName);
+    const busType = typeLabel === 'Bus' ? classifyBusType(routeType, shortName) : undefined;
+    const fallbackColor = HAMBURG_ROUTE_COLORS[shortName] ||
+                          ((fields[h.route_color]      || '').trim()) || '4a90d9';
+    const route = {
       id,
-      short_name: (fields[h.route_short_name] || '').trim(),
+      short_name: shortName,
       long_name:  (fields[h.route_long_name]  || '').trim(),
-      color:      ((fields[h.route_color]      || '').trim()) || '4a90d9',
+      color:      fallbackColor,
       text_color: ((fields[h.route_text_color] || '').trim()) || 'ffffff',
-      agency_id:  (fields[h.agency_id]         || '').trim()
-    });
+      agency_id:  (fields[h.agency_id]         || '').trim(),
+      transit_type: typeLabel
+    };
+    if (busType) route.bus_type = busType;
+    routesMap.set(id, route);
   });
   console.log(`  Routes: ${routesMap.size}`);
 
@@ -198,14 +273,14 @@ async function main() {
 
   console.log(`  Read ${linesRead} stop_time rows`);
 
-  // Filter: trips with ≥1 stop in Utrecht bbox
-  const utrechtTripIds = new Set();
+  // Filter: trips with ≥1 stop in Hamburg bbox
+  const hamburgTripIds = new Set();
   for (const [tripId, stopTimes] of tripStopTimes) {
     if (stopTimes.some(st => bboxStopsMap.has(st.stop_id))) {
-      utrechtTripIds.add(tripId);
+      hamburgTripIds.add(tripId);
     }
   }
-  console.log(`  Trips with at least one Utrecht stop: ${utrechtTripIds.size}`);
+  console.log(`  Trips with at least one Hamburg stop: ${hamburgTripIds.size}`);
 
   // ---- Step 6: Build output structures -------------------------------------
   console.log('Step 6: Building output data...');
@@ -214,7 +289,7 @@ async function main() {
   const usedRouteIds = new Set();
   const usedStopIds  = new Set();
 
-  for (const tripId of utrechtTripIds) {
+  for (const tripId of hamburgTripIds) {
     const trip = tripsMap.get(tripId);
     if (!trip) continue;
     usedRouteIds.add(trip.route_id);
@@ -234,8 +309,14 @@ async function main() {
     });
   }
 
-  // Output stops for display (bbox only)
-  const outputDisplayStops = Array.from(bboxStopsMap.values());
+  // Output stops for display (All stops referenced by trips active today)
+  const outputDisplayStops = [];
+  for (const stopId of usedStopIds) {
+    const s = allStopsMap.get(stopId);
+    if (s) {
+      outputDisplayStops.push(s);
+    }
+  }
 
   // Output stop_coords for interpolation (all stops referenced by filtered trips)
   // Format: {stop_id: [lat, lon]} — compact

@@ -1,11 +1,28 @@
 {
-  "name": "utrechtriders",
+  "name": "hamburgriders",
   "version": "1.0.0",
-  "description": "Utrecht public transit animation map",
+  "description": "Hamburg public transit animation map",
   "scripts": {
-    "build": "node scripts/build-data.js",
-    "start": "npx serve docs"
+    "build:data": "node scripts/build-data.js",
+    "build:ui": "esbuild src/index.ts --bundle --outfile=dist/app.js --minify --sourcemap",
+    "copy:public": "cp -r public/* dist/",
+    "build": "mkdir -p dist && npm run copy:public && npm run build:data && npm run build:ui",
+    "server": "npx serve dist -l 3000",
+    "start": "npm run server"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "@types/maplibre-gl": "^1.13.2",
+    "esbuild": "^0.28.0",
+    "serve": "^14.2.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@deck.gl/aggregation-layers": "^9.3.2",
+    "@deck.gl/core": "^9.3.2",
+    "@deck.gl/geo-layers": "^9.3.2",
+    "@deck.gl/layers": "^9.3.2",
+    "@deck.gl/mapbox": "^9.3.2",
+    "maplibre-gl": "^5.24.0"
+  }
 }
