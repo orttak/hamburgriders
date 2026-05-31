@@ -15,5 +15,5 @@
     "url": "https://suche.transparenz.hamburg.de/dataset/hvv-fahrplandaten-gtfs-april-2026-bis-dezember-2026",
     "description": "Official Hamburg transparency portal HVV GTFS feed"
   },
-  "gtfsUrl": "https://suche.transparenz.hamburg.de/dataset/hvv-fahrplandaten-gtfs-april-2026-bis-dezember-2026/resource/d0d9d6e4-4d8b-4c0e-8d8a-8f8f8f8f8f8f/download/hvv_gtfs.zip"
+  "gtfsUrl": "https://daten.transparenz.hamburg.de/Dataport.HmbTG.ZS.Webservice.GetRessource100/GetRessource100.svc/f0073555-962c-4d55-870e-b94bb676ad9d/Upload__hvv_Rohdaten_GTFS_Fpl_20260408.ZIP"
 }
