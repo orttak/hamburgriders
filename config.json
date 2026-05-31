@@ -1,19 +1,19 @@
 {
-  "gtfsPath": "build/gtfs-nl",
+  "gtfsPath": "../hamburg-gtfs-extracted",
   "bbox": {
-    "minLon": 4.995003,
-    "minLat": 52.049134,
-    "maxLon": 5.231209,
-    "maxLat": 52.150129
+    "minLon": 9.73,
+    "minLat": 53.39,
+    "maxLon": 10.39,
+    "maxLat": 53.73
   },
-  "title": "utrechtriders",
+  "title": "hamburgriders",
   "mapStyle": "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-  "mapCenter": [5.121, 52.090],
+  "mapCenter": [10.0, 53.55],
   "mapZoom": 11,
   "feedInfo": {
-    "publisher": "OVapi",
-    "url": "http://www.ovapi.nl",
-    "description": "Netherlands public transport GTFS feed"
+    "publisher": "Hamburger Verkehrsverbund (hvv)",
+    "url": "https://suche.transparenz.hamburg.de/dataset/hvv-fahrplandaten-gtfs-april-2026-bis-dezember-2026",
+    "description": "Official Hamburg transparency portal HVV GTFS feed"
   },
-  "gtfsUrl": "https://gtfs.ovapi.nl/nl/gtfs-nl.zip"
+  "gtfsUrl": "https://suche.transparenz.hamburg.de/dataset/hvv-fahrplandaten-gtfs-april-2026-bis-dezember-2026/resource/d0d9d6e4-4d8b-4c0e-8d8a-8f8f8f8f8f8f/download/hvv_gtfs.zip"
 }
