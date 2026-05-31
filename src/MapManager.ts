@@ -37,21 +37,21 @@ export class MapManager {
       showZoom: true
     }), 'bottom-left');
     this.map.addControl(this.deckOverlay);
-    this.closeMobileAttribution();
+    this.initMobileAttribution();
 
     this.tripPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10 });
     this.stopPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 6 });
 
     return new Promise<void>((resolve) => {
       this.map!.on('load', () => {
-        this.closeMobileAttribution();
+        this.initMobileAttribution();
         this.addMapLibreStopsLayers();
         resolve();
       });
     });
   }
 
-  private closeMobileAttribution() {
+  private initMobileAttribution() {
     if (!window.matchMedia('(max-width: 700px)').matches) return;
 
     window.requestAnimationFrame(() => {
@@ -60,10 +60,21 @@ export class MapManager {
 
       attribution.classList.add('maplibregl-compact');
       attribution.classList.remove('maplibregl-compact-show');
+      attribution.classList.remove('app-attrib-open');
       attribution.removeAttribute('open');
-      attribution
-        .querySelector('.maplibregl-ctrl-attrib-button')
-        ?.setAttribute('aria-expanded', 'false');
+      const button = attribution.querySelector('.maplibregl-ctrl-attrib-button');
+      button?.setAttribute('aria-expanded', 'false');
+      if (button?.getAttribute('data-app-bound') === 'true') return;
+
+      button?.setAttribute('data-app-bound', 'true');
+      button?.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const open = !attribution.classList.contains('app-attrib-open');
+        attribution.classList.toggle('app-attrib-open', open);
+        attribution.classList.toggle('maplibregl-compact-show', open);
+        button.setAttribute('aria-expanded', open.toString());
+      });
     });
   }
 

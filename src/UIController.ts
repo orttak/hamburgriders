@@ -468,12 +468,17 @@ export class UIController {
       }
     };
 
-    header.addEventListener('click', (e) => {
+    const handleToggle = (e: Event) => {
       if (!mobileQuery.matches) return;
       const target = e.target as HTMLElement;
       if (target.closest('#layer-controls')) return;
+      e.preventDefault();
+      e.stopPropagation();
       setCollapsed(!panel.classList.contains('mobile-collapsed'));
-    });
+    };
+
+    header.addEventListener('click', handleToggle);
+    toggle.addEventListener('touchend', handleToggle);
 
     syncForViewport();
     mobileQuery.addEventListener('change', syncForViewport);
@@ -508,13 +513,16 @@ export class UIController {
       }
     };
 
-    const handleToggle = () => {
+    const handleToggle = (e: Event) => {
       if (!mobileQuery.matches) return;
+      e.preventDefault();
+      e.stopPropagation();
       setCollapsed(!panel.classList.contains('mobile-collapsed'));
     };
 
     heading.addEventListener('click', handleToggle);
     toggle.addEventListener('click', handleToggle);
+    toggle.addEventListener('touchend', handleToggle);
 
     syncForViewport();
     mobileQuery.addEventListener('change', syncForViewport);
