@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "0 2 * * *" # Every day at 02:00 UTC, 04:00 Hamburg summer time
   push:
-    branches: ["main"]
+    branches: ["main", "initalizehamburg"]
   workflow_dispatch:
 
 permissions:
