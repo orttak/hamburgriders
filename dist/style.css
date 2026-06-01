@@ -4,14 +4,44 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   background: #000;
   color: #e0e0e0;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+body.maplibregl-pseudo-fullscreen {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+body:fullscreen {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+
+body:-webkit-full-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
 }
 
 /* ---- Header ---- */
@@ -50,6 +80,7 @@ body {
 #map {
   flex: 1;
   width: 100%;
+  min-height: 0;
 }
 
 /* ---- Timeline bar ---- */
@@ -564,10 +595,12 @@ body {
 ::-webkit-scrollbar-track { background: #111; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   body {
     --mobile-control-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
-    min-height: 100svh;
+    --mobile-map-control-lift: 18px;
+    --mobile-map-control-margin: 10px;
+    min-height: 100dvh;
   }
 
   #header {
@@ -765,7 +798,7 @@ body {
   .maplibregl-ctrl-bottom-left {
     left: auto;
     right: 6px;
-    bottom: var(--mobile-control-bottom);
+    bottom: calc(var(--mobile-control-bottom) + var(--mobile-map-control-lift) - var(--mobile-map-control-margin));
   }
 
   .maplibregl-ctrl-bottom-right {
@@ -802,5 +835,51 @@ body {
 
   .maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button {
     display: block;
+  }
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  #header {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  #timeline {
+    gap: 8px;
+    padding: 6px 10px;
+    min-height: 44px;
+  }
+
+  #play-pause {
+    min-width: 52px;
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  #timeline-slider {
+    min-width: 120px;
+  }
+
+  #speed-select {
+    width: auto;
+    max-width: none;
+    min-height: 28px;
+    font-size: 12px;
+  }
+
+  #stats {
+    top: 42px;
+    max-height: calc(100dvh - 96px);
+  }
+
+  #layers-panel {
+    top: 96px;
+    max-height: calc(100dvh - 150px);
+  }
+
+  #stats:not(.mobile-collapsed) + #layers-panel {
+    top: 106px;
+    max-height: calc(100dvh - 160px);
   }
 }

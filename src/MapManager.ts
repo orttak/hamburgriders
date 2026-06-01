@@ -5,6 +5,8 @@ import { DataManager } from './DataManager';
 import { TYPE_ORDER, TRANSIT_CONFIG } from './constants';
 import type { Route } from './types';
 
+const MOBILE_VIEWPORT_QUERY = '(max-width: 700px) and (orientation: portrait)';
+
 export class MapManager {
   public map: maplibregl.Map | null = null;
   private deckOverlay: MapboxOverlay | null = null;
@@ -36,6 +38,9 @@ export class MapManager {
       showCompass: true,
       showZoom: true
     }), 'bottom-left');
+    this.map.addControl(new maplibregl.FullscreenControl({
+      container: document.body
+    }), 'bottom-left');
     this.map.addControl(this.deckOverlay);
     this.initMobileAttribution();
 
@@ -52,7 +57,7 @@ export class MapManager {
   }
 
   private initMobileAttribution() {
-    if (!window.matchMedia('(max-width: 700px)').matches) return;
+    if (!window.matchMedia(MOBILE_VIEWPORT_QUERY).matches) return;
 
     window.requestAnimationFrame(() => {
       const attribution = document.querySelector('.maplibregl-ctrl-attrib');
