@@ -38,9 +38,7 @@ export class MapManager {
       showCompass: true,
       showZoom: true
     }), 'bottom-left');
-    this.map.addControl(new maplibregl.FullscreenControl({
-      container: document.body
-    }), 'bottom-left');
+    this.map.addControl(this.createAppFullscreenControl(), 'bottom-left');
     this.map.addControl(this.deckOverlay);
     this.initMobileAttribution();
 
@@ -54,6 +52,67 @@ export class MapManager {
         resolve();
       });
     });
+  }
+
+  private createAppFullscreenControl() {
+    let map: maplibregl.Map | null = null;
+    let button: HTMLButtonElement | null = null;
+    const canUseNativeFullscreen = () => !!document.body.requestFullscreen && !window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    const isNativeFullscreen = () => document.fullscreenElement === document.body;
+    const isAppFullscreen = () => document.body.classList.contains('app-fullscreen') || isNativeFullscreen();
+    const syncButton = () => {
+      if (!button) return;
+      const active = isAppFullscreen();
+      button.classList.toggle('maplibregl-ctrl-fullscreen', !active);
+      button.classList.toggle('maplibregl-ctrl-shrink', active);
+      button.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
+      button.setAttribute('aria-label', button.title);
+      button.setAttribute('aria-pressed', active.toString());
+      window.setTimeout(() => map?.resize(), 50);
+    };
+
+    return {
+      onAdd: (controlMap: maplibregl.Map) => {
+        map = controlMap;
+        const container = document.createElement('div');
+        container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'maplibregl-ctrl-fullscreen';
+        const icon = document.createElement('span');
+        icon.className = 'maplibregl-ctrl-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        button.appendChild(icon);
+        button.addEventListener('click', async () => {
+          try {
+            if (isNativeFullscreen()) {
+              await document.exitFullscreen();
+            } else if (document.body.classList.contains('app-fullscreen')) {
+              document.body.classList.remove('app-fullscreen');
+              syncButton();
+            } else if (canUseNativeFullscreen()) {
+              await document.body.requestFullscreen();
+            } else {
+              document.body.classList.add('app-fullscreen');
+              syncButton();
+            }
+          } catch {
+            document.body.classList.toggle('app-fullscreen');
+            syncButton();
+          }
+        });
+        document.addEventListener('fullscreenchange', syncButton);
+        container.appendChild(button);
+        syncButton();
+        return container;
+      },
+      onRemove: () => {
+        document.removeEventListener('fullscreenchange', syncButton);
+        button?.remove();
+        button = null;
+        map = null;
+      }
+    };
   }
 
   private initMobileAttribution() {
