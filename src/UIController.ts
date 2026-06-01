@@ -4,6 +4,8 @@ import { BUS_TYPE_CONFIG, BUS_TYPE_ORDER, TYPE_ORDER, TRANSIT_CONFIG, VEHICLE_TY
 import { secToGTFSTime } from './utils';
 import type { Route } from './types';
 
+const MOBILE_VIEWPORT_QUERY = '(max-width: 700px) and (orientation: portrait)';
+
 interface DisplayRoute {
   ids: string[];
   short_name: string;
@@ -55,7 +57,7 @@ export class UIController {
     // Legend toggle
     const legendPanel = document.getElementById('legend')!;
     const legendBtn   = document.getElementById('legend-btn')!;
-    const mobileQuery = window.matchMedia('(max-width: 700px)');
+    const mobileQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
     const setLegendVisible = (visible: boolean) => {
       legendPanel.classList.toggle('visible', visible);
       legendBtn.classList.toggle('active', visible);
@@ -161,7 +163,7 @@ export class UIController {
 
     for (const type of TYPE_ORDER) {
       const group = document.createElement('div');
-      group.className = window.matchMedia('(max-width: 700px)').matches
+      group.className = window.matchMedia(MOBILE_VIEWPORT_QUERY).matches
         ? 'layer-type-group collapsed'
         : 'layer-type-group';
 
@@ -475,7 +477,7 @@ export class UIController {
     const toggle = document.getElementById('layers-toggle');
     if (!panel || !header || !toggle) return;
 
-    const mobileQuery = window.matchMedia('(max-width: 700px)');
+    const mobileQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
 
     const setCollapsed = (collapsed: boolean) => {
       if (!collapsed && mobileQuery.matches) this.collapseLayerGroups();
@@ -517,7 +519,7 @@ export class UIController {
     const toggle = document.getElementById('stats-toggle');
     if (!panel || !heading || !toggle) return;
 
-    const mobileQuery = window.matchMedia('(max-width: 700px)');
+    const mobileQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
 
     const setCollapsed = (collapsed: boolean) => {
       panel.classList.toggle('mobile-collapsed', collapsed);
