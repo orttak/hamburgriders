@@ -55,9 +55,34 @@ export class UIController {
     // Legend toggle
     const legendPanel = document.getElementById('legend')!;
     const legendBtn   = document.getElementById('legend-btn')!;
-    legendBtn.addEventListener('click', () => {
-      legendPanel.classList.toggle('visible');
-      legendBtn.classList.toggle('active');
+    const mobileQuery = window.matchMedia('(max-width: 700px)');
+    const setLegendVisible = (visible: boolean) => {
+      legendPanel.classList.toggle('visible', visible);
+      legendBtn.classList.toggle('active', visible);
+      document.body.classList.toggle('legend-open', visible);
+    };
+
+    legendBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setLegendVisible(!legendPanel.classList.contains('visible'));
+    });
+
+    legendPanel.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!mobileQuery.matches || !legendPanel.classList.contains('visible')) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('#legend') || target.closest('#legend-btn')) return;
+      setLegendVisible(false);
+    }, true);
+
+    mobileQuery.addEventListener('change', () => {
+      if (!mobileQuery.matches) document.body.classList.remove('legend-open');
+      if (mobileQuery.matches && legendPanel.classList.contains('visible')) {
+        document.body.classList.add('legend-open');
+      }
     });
 
     // About modal
@@ -462,14 +487,10 @@ export class UIController {
     const syncForViewport = () => {
       if (mobileQuery.matches) {
         if (!panel.classList.contains('mobile-collapsed')) setCollapsed(true);
-      } else {
-        panel.classList.remove('mobile-collapsed');
-        toggle.setAttribute('aria-expanded', 'true');
       }
     };
 
     const handleToggle = (e: Event) => {
-      if (!mobileQuery.matches) return;
       const target = e.target as HTMLElement;
       if (target.closest('#layer-controls')) return;
       e.preventDefault();
@@ -507,14 +528,10 @@ export class UIController {
     const syncForViewport = () => {
       if (mobileQuery.matches) {
         if (!panel.classList.contains('mobile-collapsed')) setCollapsed(true);
-      } else {
-        panel.classList.remove('mobile-collapsed');
-        toggle.setAttribute('aria-expanded', 'true');
       }
     };
 
     const handleToggle = (e: Event) => {
-      if (!mobileQuery.matches) return;
       e.preventDefault();
       e.stopPropagation();
       setCollapsed(!panel.classList.contains('mobile-collapsed'));
