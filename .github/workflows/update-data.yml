@@ -2,7 +2,7 @@ name: Daily GTFS Update & Deploy
 
 on:
   schedule:
-    - cron: "55 2 * * *" # Every day at 02:55 UTC
+    - cron: "0 2 * * *" # Every day at 02:00 UTC, 04:00 Hamburg summer time
   push:
     branches: ["main"]
   workflow_dispatch:
@@ -41,7 +41,8 @@ jobs:
             exit 1
           fi
           echo "Downloading GTFS..."
-          curl -L -o gtfs.zip "$CONFIG_URL"
+          curl --fail --location --retry 3 --retry-delay 10 --retry-all-errors --output gtfs.zip "$CONFIG_URL"
+          unzip -tq gtfs.zip
           mkdir -p ../hamburg-gtfs-extracted
           unzip -o gtfs.zip -d ../hamburg-gtfs-extracted
           rm gtfs.zip
